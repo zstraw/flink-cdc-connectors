@@ -233,24 +233,14 @@ public class MySqlSourceITCase extends MySqlSourceTestBase {
     }
 
     @Test
-    public void testConsumingTableWithoutPrimaryKey() {
-        try {
-            testMySqlParallelSource(
-                    1,
-                    DEFAULT_SCAN_STARTUP_MODE,
-                    FailoverType.NONE,
-                    FailoverPhase.NEVER,
-                    new String[] {"customers_no_pk"},
-                    RestartStrategies.noRestart());
-        } catch (Exception e) {
-            assertTrue(
-                    ExceptionUtils.findThrowableWithMessage(
-                                    e,
-                                    String.format(
-                                            "Incremental snapshot for tables requires primary key, but table %s doesn't have primary key",
-                                            customDatabase.getDatabaseName() + ".customers_no_pk"))
-                            .isPresent());
-        }
+    public void testConsumingTableWithoutPrimaryKey() throws Exception {
+        testMySqlParallelSource(
+                1,
+                DEFAULT_SCAN_STARTUP_MODE,
+                FailoverType.NONE,
+                FailoverPhase.NEVER,
+                new String[]{"customers_no_pk"},
+                RestartStrategies.noRestart());
     }
 
     @Test
@@ -785,5 +775,91 @@ public class MySqlSourceITCase extends MySqlSourceTestBase {
         public TypeInformation<RowData> getProducedType() {
             return deserializeSchema.getProducedType();
         }
+    }
+
+    @Test
+    public void testReadTableWithoutPrimaryKeyWithMultipleParallelism() throws Exception {
+        testMySqlParallelSource(
+                4,
+                FailoverType.NONE,
+                FailoverPhase.NEVER,
+                new String[] {"customers_no_pk"});
+    }
+
+    @Test
+    public void testReadMultipleTableWithoutPrimaryKeyWithSingleParallelism() throws Exception {
+        testMySqlParallelSource(
+                1,
+                FailoverType.NONE,
+                FailoverPhase.NEVER,
+                new String[] {"customers", "customers_no_pk"});
+    }
+
+    @Test
+    public void testReadMultipleTableWithoutPrimaryKeyWithMultipleParallelism() throws Exception {
+        testMySqlParallelSource(
+                4,
+                FailoverType.NONE,
+                FailoverPhase.NEVER,
+                new String[] {"customers", "customers_no_pk"});
+    }
+
+    // Failover tests
+    @Test
+    public void testWithoutPrimaryKeyTaskManagerFailoverInSnapshotPhase() throws Exception {
+        testMySqlParallelSource(
+                FailoverType.TM, FailoverPhase.SNAPSHOT, new String[] {"customers", "customers_no_pk"});
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyTaskManagerFailoverInBinlogPhase() throws Exception {
+        testMySqlParallelSource(
+                FailoverType.TM, FailoverPhase.BINLOG, new String[] {"customers", "customers_no_pk"});
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyTaskManagerFailoverFromLatestOffset() throws Exception {
+        testMySqlParallelSource(
+                DEFAULT_PARALLELISM,
+                "latest-offset",
+                FailoverType.TM,
+                FailoverPhase.BINLOG,
+                new String[] {"customers", "customers_no_pk"},
+                RestartStrategies.fixedDelayRestart(1, 0));
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyJobManagerFailoverInSnapshotPhase() throws Exception {
+        testMySqlParallelSource(
+                FailoverType.JM, FailoverPhase.SNAPSHOT, new String[] {"customers", "customers_no_pk"});
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyJobManagerFailoverInBinlogPhase() throws Exception {
+        testMySqlParallelSource(
+                FailoverType.JM, FailoverPhase.BINLOG, new String[] {"customers", "customers_no_pk"});
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyJobManagerFailoverFromLatestOffset() throws Exception {
+        testMySqlParallelSource(
+                DEFAULT_PARALLELISM,
+                "latest-offset",
+                FailoverType.JM,
+                FailoverPhase.BINLOG,
+                new String[] {"customers", "customers_no_pk"},
+                RestartStrategies.fixedDelayRestart(1, 0));
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyTaskManagerFailoverSingleParallelism() throws Exception {
+        testMySqlParallelSource(
+                1, FailoverType.TM, FailoverPhase.SNAPSHOT, new String[] {"customers_no_pk"});
+    }
+
+    @Test
+    public void testWithoutPrimaryKeyJobManagerFailoverSingleParallelism() throws Exception {
+        testMySqlParallelSource(
+                1, FailoverType.JM, FailoverPhase.SNAPSHOT, new String[] {"customers_no_pk"});
     }
 }
