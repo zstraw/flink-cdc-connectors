@@ -252,8 +252,10 @@ public class SnapshotSplitReader implements DebeziumReader<SourceRecords, MySqlS
             SourceRecord lowWatermark = null;
             SourceRecord highWatermark = null;
 
-            SnapshotRecords snapshotRecords = containsPrimaryKey() ? new PrimaryKeySnapshotRecords() :
-                    new NoPrimaryKeySnapshotRecords();
+            SnapshotRecords snapshotRecords =
+                    containsPrimaryKey()
+                            ? new PrimaryKeySnapshotRecords()
+                            : new NoPrimaryKeySnapshotRecords();
             while (!reachBinlogEnd) {
                 checkReadException();
                 List<DataChangeEvent> batch = queue.poll();
@@ -406,18 +408,14 @@ public class SnapshotSplitReader implements DebeziumReader<SourceRecords, MySqlS
         return !CollectionUtil.isNullOrEmpty(currentSnapshotSplit.getSplitKeyType().getFields());
     }
 
-    /**
-     * Collect records need to be sent, except low/high watermark
-     */
+    /** Collect records need to be sent, except low/high watermark */
     interface SnapshotRecords {
         void collect(SourceRecord record, boolean reachBinlogStart);
 
         Collection<SourceRecord> getRecords();
     }
 
-    /**
-     * Collect records with primary key. May upsert binlog events.
-     */
+    /** Collect records with primary key. May upsert binlog events. */
     class PrimaryKeySnapshotRecords implements SnapshotRecords {
         private final Map<Struct, SourceRecord> snapshotRecords = new LinkedHashMap<>();
 
@@ -439,9 +437,7 @@ public class SnapshotSplitReader implements DebeziumReader<SourceRecords, MySqlS
         }
     }
 
-    /**
-     * Collect records without primary key. There are no binlog events.
-     */
+    /** Collect records without primary key. There are no binlog events. */
     static class NoPrimaryKeySnapshotRecords implements SnapshotRecords {
         private final List<SourceRecord> snapshotRecords = new LinkedList<>();
 
@@ -450,8 +446,9 @@ public class SnapshotSplitReader implements DebeziumReader<SourceRecords, MySqlS
             if (!reachBinlogStart) {
                 snapshotRecords.add(record);
             } else {
-                throw new IllegalStateException("a table without primary key can not have binlog splits" +
-                        " in initialization stage");
+                throw new IllegalStateException(
+                        "a table without primary key can not have binlog splits"
+                                + " in initialization stage");
             }
         }
 

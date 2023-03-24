@@ -44,7 +44,6 @@ import org.apache.flink.types.Row;
 import org.apache.flink.types.RowUtils;
 import org.apache.flink.util.CloseableIterator;
 import org.apache.flink.util.Collector;
-import org.apache.flink.util.ExceptionUtils;
 
 import com.ververica.cdc.connectors.mysql.debezium.DebeziumUtils;
 import com.ververica.cdc.connectors.mysql.table.MySqlDeserializationConverterFactory;
@@ -239,7 +238,7 @@ public class MySqlSourceITCase extends MySqlSourceTestBase {
                 DEFAULT_SCAN_STARTUP_MODE,
                 FailoverType.NONE,
                 FailoverPhase.NEVER,
-                new String[]{"customers_no_pk"},
+                new String[] {"customers_no_pk"},
                 RestartStrategies.noRestart());
     }
 
@@ -780,10 +779,7 @@ public class MySqlSourceITCase extends MySqlSourceTestBase {
     @Test
     public void testReadTableWithoutPrimaryKeyWithMultipleParallelism() throws Exception {
         testMySqlParallelSource(
-                4,
-                FailoverType.NONE,
-                FailoverPhase.NEVER,
-                new String[] {"customers_no_pk"});
+                4, FailoverType.NONE, FailoverPhase.NEVER, new String[] {"customers_no_pk"});
     }
 
     @Test
@@ -808,13 +804,17 @@ public class MySqlSourceITCase extends MySqlSourceTestBase {
     @Test
     public void testWithoutPrimaryKeyTaskManagerFailoverInSnapshotPhase() throws Exception {
         testMySqlParallelSource(
-                FailoverType.TM, FailoverPhase.SNAPSHOT, new String[] {"customers", "customers_no_pk"});
+                FailoverType.TM,
+                FailoverPhase.SNAPSHOT,
+                new String[] {"customers", "customers_no_pk"});
     }
 
     @Test
     public void testWithoutPrimaryKeyTaskManagerFailoverInBinlogPhase() throws Exception {
         testMySqlParallelSource(
-                FailoverType.TM, FailoverPhase.BINLOG, new String[] {"customers", "customers_no_pk"});
+                FailoverType.TM,
+                FailoverPhase.BINLOG,
+                new String[] {"customers", "customers_no_pk"});
     }
 
     @Test
@@ -831,13 +831,17 @@ public class MySqlSourceITCase extends MySqlSourceTestBase {
     @Test
     public void testWithoutPrimaryKeyJobManagerFailoverInSnapshotPhase() throws Exception {
         testMySqlParallelSource(
-                FailoverType.JM, FailoverPhase.SNAPSHOT, new String[] {"customers", "customers_no_pk"});
+                FailoverType.JM,
+                FailoverPhase.SNAPSHOT,
+                new String[] {"customers", "customers_no_pk"});
     }
 
     @Test
     public void testWithoutPrimaryKeyJobManagerFailoverInBinlogPhase() throws Exception {
         testMySqlParallelSource(
-                FailoverType.JM, FailoverPhase.BINLOG, new String[] {"customers", "customers_no_pk"});
+                FailoverType.JM,
+                FailoverPhase.BINLOG,
+                new String[] {"customers", "customers_no_pk"});
     }
 
     @Test
